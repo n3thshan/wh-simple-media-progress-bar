@@ -3,6 +3,8 @@
 A Windhawk mod that adds a seek bar with elapsed/total time to the media card in
 Windows 11 Quick Settings.
 
+Source: <https://github.com/n3thshan/wh-simple-media-progress-bar>.
+
 - Windows 11 **24H2 (build 26100) or newer**, x86-64.
 - The bar is a real XAML `Slider` inserted into the card, so it uses the platform
   look, the accent color, the standard animations, and the accessibility tree.
@@ -13,10 +15,14 @@ Windows 11 Quick Settings.
 
 ## Install
 
-1. Open Windhawk → **Create new mod**.
-2. Replace the whole contents with `simple-media-progress-bar.wh.cpp`.
-3. **Compile mod**, then **Install**.
-4. Close and reopen Quick Settings once. The panel is built on demand, so the bar
+The mod is not in the Windhawk catalogue yet, so install it from this repository:
+
+1. Open [`simple-media-progress-bar.wh.cpp`](simple-media-progress-bar.wh.cpp)
+   and click **Raw** (or download the file).
+2. In Windhawk, open **Create new mod**.
+3. Replace the whole contents with the downloaded file.
+4. **Compile mod**, then **Install**.
+5. Close and reopen Quick Settings once. The panel is built on demand, so the bar
    appears the next time the panel opens.
 
 This mod has its own id, `simple-media-progress-bar`. An older **Media Progress
@@ -123,9 +129,7 @@ it is either running normally or it says once that something is missing.
   timeline, so the bar stays in sync either way.
 - Only the arm64 and x86-64 shells ship this XAML; the mod is built for x86-64.
 
-## Publishing
-
-State of the metadata:
+## Project
 
 - `@author` is `n3thshan`, `@github` is `https://github.com/n3thshan`.
 - `@id` is `simple-media-progress-bar`; the source file
@@ -133,5 +137,11 @@ State of the metadata:
   builds used `media-progress-bar`, which is why Windhawk treats this one as a
   separate mod.
 - `@version` is `1.0.0`.
-- License is GPL-3.0-only, which the repository requires.
+- Windhawk compiles the single `.wh.cpp` file, so there is no separate build
+  step.
 - The mod contains no personal paths or machine-specific values.
+- Issues and log reports: <https://github.com/n3thshan/wh-simple-media-progress-bar/issues>.
+
+## License
+
+GPL-3.0-only. See [`LICENSE`](LICENSE).

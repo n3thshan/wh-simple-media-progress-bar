@@ -15,14 +15,17 @@ Windhawk compiles the source itself.
 
 ## Repository layout
 
-- `simple-media-progress-bar.wh.cpp` — the entire mod (~1950 lines). The file
+- `simple-media-progress-bar.wh.cpp` — the entire mod (~2,100 lines). The file
   name, the project folder (`wh-simple-media-progress-bar`) and `@id` all match.
   The commands below name the file, so renaming it again is a three-place change
   (file, `README.md` install step, the two commands here).
-- `README.md` — user-facing install, testing, log and publishing notes.
+- `README.md` — user-facing install, testing, log and project notes.
 - `AGENTS.md` — this file.
+- `LICENSE` — GPL-3.0-only, required by the Windhawk catalogue. Do not edit it.
 
-Not a git repository (at the time of writing). Do not assume `git`.
+The project is a git repository: branch `main`, remote
+`https://github.com/n3thshan/wh-simple-media-progress-bar.git`. Only the four
+files above are tracked; there are no build artefacts or generated files.
 
 Read `README.md` before changing behaviour: it is the user-facing contract —
 install flow, what each log line means, and publishing rules. Keep it in sync with
@@ -326,6 +329,9 @@ label. Do not "simplify" them away.
 
 The source header is the published artefact: the single `.wh.cpp` file is what
 goes to the Windhawk catalogue (the mods repository takes one file per mod).
+The GitHub repository is
+`https://github.com/n3thshan/wh-simple-media-progress-bar` and holds the same
+file plus `README.md`, `AGENTS.md` and `LICENSE`.
 
 - `@id` `simple-media-progress-bar` and `@name` **Simple Media Progress Bar** are
   final. The id is what Windhawk, the catalogue URL and the log prefix
@@ -436,8 +442,9 @@ Decisions already taken, so they are not re-opened by accident:
 - The mod is named **Simple Media Progress Bar**, id
   `simple-media-progress-bar` (renamed from **Media Progress Bar** /
   `media-progress-bar` on 2026-11-06, at the user's request; the id change is
-  accepted, so the old Windhawk entry is removed rather than migrated). There is
-  no repository yet; publishing targets Windhawk first.
+  accepted, so the old Windhawk entry is removed rather than migrated). The
+  repository is public; the Windhawk catalogue submission is the next publishing
+  step.
 - Seek to the far left: the players tested restart the track, so the
   FluentFlyout seek-to-1-second workaround is **not** needed.
 - A session with a duration but no position control (`valid=1 seek=0`): the row
