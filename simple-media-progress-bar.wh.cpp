@@ -1,7 +1,7 @@
 // ==WindhawkMod==
 // @id              simple-media-progress-bar
 // @name            Simple Media Progress Bar
-// @description     Adds a seekable progress bar with elapsed and total time to the media card in Windows 11 Quick Settings, matching the Windows design language.
+// @description     Adds a seekable progress bar with elapsed and total time to the media card in Windows 11 Quick Settings
 // @version         1.0.0
 // @author          n3thshan
 // @github          https://github.com/n3thshan
