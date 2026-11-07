@@ -37,6 +37,8 @@ Notes:
 * The card is about 36 DIP taller while the bar is shown. On short screens the
   rest of the panel moves down by that amount.
 * Requires Windows 11 24H2 (build 26100) or newer.
+* Source and issue reports:
+  https://github.com/n3thshan/wh-simple-media-progress-bar
 */
 // ==/WindhawkModReadme==
 

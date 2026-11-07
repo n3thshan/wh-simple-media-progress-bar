@@ -16,9 +16,10 @@ Windhawk compiles the source itself.
 ## Repository layout
 
 - `simple-media-progress-bar.wh.cpp` — the entire mod (~2,100 lines). The file
-  name, the project folder (`wh-simple-media-progress-bar`) and `@id` all match.
-  The commands below name the file, so renaming it again is a three-place change
-  (file, `README.md` install step, the two commands here).
+  name and `@id` are the same; the project folder is
+  `wh-simple-media-progress-bar`. The commands below name the file, so renaming
+  it again is a three-place change (file, `README.md` install step, the two
+  commands here).
 - `README.md` — user-facing install, testing, log and project notes.
 - `AGENTS.md` — this file.
 - `LICENSE` — GPL-3.0-only, required by the Windhawk catalogue. Do not edit it.
@@ -28,7 +29,7 @@ The project is a git repository: branch `main`, remote
 files above are tracked; there are no build artefacts or generated files.
 
 Read `README.md` before changing behaviour: it is the user-facing contract —
-install flow, what each log line means, and publishing rules. Keep it in sync with
+install flow, what each log line means, and project notes. Keep it in sync with
 the source.
 
 ## Environment
@@ -80,14 +81,14 @@ print `0`. They mirror Windhawk's own compiler invocation.
 Syntax check (strict warnings):
 
 ```powershell
-cd C:\Users\Admin\Documents\Projects\wh-simple-media-progress-bar
-& "C:\Program Files\Windhawk\Compiler\bin\clang++.exe" "@C:\Program Files\Windhawk\Compiler\compile_flags.txt" "@C:\Users\Admin\AppData\Local\Temp\whflags.txt" -Wall -Wextra -fsyntax-only simple-media-progress-bar.wh.cpp; "syntax=$LASTEXITCODE"
+cd <repo>
+& "C:\Program Files\Windhawk\Compiler\bin\clang++.exe" "@C:\Program Files\Windhawk\Compiler\compile_flags.txt" "@$env:TEMP\whflags.txt" -Wall -Wextra -fsyntax-only simple-media-progress-bar.wh.cpp; "syntax=$LASTEXITCODE"
 ```
 
 Link check (catches undefined symbols that `-fsyntax-only` cannot):
 
 ```powershell
-& "C:\Program Files\Windhawk\Compiler\bin\clang++.exe" "@C:\Program Files\Windhawk\Compiler\compile_flags.txt" "@C:\Users\Admin\AppData\Local\Temp\whflags.txt" -shared -O2 -o C:\Users\Admin\AppData\Local\Temp\qsm-check.dll simple-media-progress-bar.wh.cpp C:\Users\Admin\AppData\Local\Temp\whstub.cpp -lole32 -loleaut32 -lruntimeobject -luuid -luser32; "link=$LASTEXITCODE"
+& "C:\Program Files\Windhawk\Compiler\bin\clang++.exe" "@C:\Program Files\Windhawk\Compiler\compile_flags.txt" "@$env:TEMP\whflags.txt" -shared -O2 -o "$env:TEMP\qsm-check.dll" simple-media-progress-bar.wh.cpp "$env:TEMP\whstub.cpp" -lole32 -loleaut32 -lruntimeobject -luuid -luser32; "link=$LASTEXITCODE"
 ```
 
 Notes:
@@ -353,11 +354,10 @@ Before a release:
 4. Smoke test: reboot, open Quick Settings ~10 times, bar and both labels present,
    and no new `ShellHost.exe` Id=1000 events in `Application`.
 
-## Current state (2026-11-06)
+## Current state (2026-11-07)
 
-**Version 1.0.0 — in the tree, plus a set of fixes that are NOT yet verified on
-this machine. `@version` was deliberately not bumped; the two compile gates
-print `0`.**
+**Version 1.0.0 — verified on this machine. `@version` was deliberately not
+bumped; both compile gates print `0`.**
 
 Renamed 2026-11-06, at the user's request: `@name` is **Simple Media Progress
 Bar**, `@id` is `simple-media-progress-bar`, and the source file, project folder
@@ -366,8 +366,7 @@ Windhawk has never seen this id and will treat the build as a first release. The
 old `media-progress-bar` entry stays installed until the user removes it, and
 both mods must never be enabled at the same time.
 
-Applied 2026-11-06 (unreleased; do not call them "working" until the user
-reports them working):
+Applied 2026-11-06 (verified by the user on 2026-11-07):
 
 - UI idle while hidden: the 200 ms timer stops after two consecutive hidden
   ticks (`HostVisible()` false) and `g_active` is cleared, so no XAML or window
@@ -389,21 +388,14 @@ reports them working):
   the session is verified seekable; the collapsed card is on natural auto-size
   (`Height(NaN)`) with `baseHeight_` re-learned, and `Restore()` writes
   `Height(NaN)` instead of the base height.
-- Boot delay: `Wh_ModInit`/`Wh_ModAfterInit` no longer hook `ControlCenter.dll`
-  directly; only `InstallProc` installs, always after `Sleep(1000)`, with a
-  clean exit if `g_stopping` lands during the sleep.
+- Boot delay: `Wh_ModInit` no longer hooks `ControlCenter.dll` directly; only
+  `InstallProc` installs, always after `Sleep(1000)`, with a clean exit if
+  `g_stopping` lands during the sleep.
 - `FormatTime(ticks, forceHours)`: a track of an hour or longer keeps `h:mm:ss`
   for the elapsed label below the mark. Label brushes compare A,R,G,B (not the
   brush pointer) so in-place theme mutations are detected.
 - `Wh_ModAfterInit` is gone; the entry points are `Wh_ModInit` and
   `Wh_ModUninit`.
-
-Still required before any release: both compile gates print `0` (they do), the
-README smoke test (reboot, ~10 panel opens, no Id=1000 events), and the user's
-report for each fix above — in particular the paused-seek case and the idle
-timer shutdown.
-
-**Version 1.0.0 — released, verified, diagnostics removed.**
 
 The mod does what it set out to do: a real XAML slider plus two labels in the media
 card, seeking on release, the native buttons untouched. Confirmed by the user on
@@ -417,21 +409,8 @@ evidence that 1.0.0's structure works, and 1.0.0 does *less* at start-up than th
 build that was tested (the crash tracers are gone). Do not add anything to
 `Wh_ModInit` without repeating that test.
 
-Machine leftovers from the crash work, to remove once nothing is being diagnosed
-any more (elevated PowerShell):
-
-```powershell
-Remove-Item 'HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\ShellHost.exe' -Recurse
-Remove-Item "$env:LOCALAPPDATA\Temp\opencode\shellhost-dumps" -Recurse
-```
-
 ## Still needed from the user
 
-- Verify the 2026-11-06 fixes: seek while paused (no snapback after 10+ s),
-  seek row never flashes on live streams, card height after wrapped titles /
-  app switches, time label width before the one-hour mark, panel reopen paints
-  fresh values after a closure of 10+ s (no `0:00`), and that the UI timer is
-  idle while the panel is closed.
 - Multi-player test: Spotify, Edge-tab YouTube Music, Windows Media Player, and a
   live stream. Nothing else is outstanding.
 
@@ -453,9 +432,9 @@ Decisions already taken, so they are not re-opened by accident:
 
 ## Reference material
 
-`C:\Users\Admin\Downloads\FluentFlyout-master` — a GPL-3.0-or-later WPF app that
-uses the same GSMTC API and the same seek-bar design (poll, project forward,
-commit on release, +36 px). Useful to check assumptions; not a template.
+[FluentFlyout](https://github.com/unchihugo/FluentFlyout) — a GPL-3.0-or-later
+WPF app that uses the same GSMTC API and the same seek-bar design (poll, project
+forward, commit on release, +36 px). Useful to check assumptions; not a template.
 
 - Worth learning from: the seek-to-zero workaround; the deliberate decision not
   to require `IsPlaybackPositionEnabled`; the same 36 DIP growth.
@@ -464,10 +443,11 @@ commit on release, +36 px). Useful to check assumptions; not a template.
   omitting capture-lost handling. Those are safe only in its own process and are
   bugs in ours.
 
-`C:\Users\Admin\AppData\Local\Temp\refined.cpp` — the published *Refined Quick
-Settings and Sound* mod, used as the structural reference for discovery (the rule
-that a `Connect` target must never be queried while it is half-built comes from
-there). It is temp data and may disappear; the invariants above carry the lesson.
+The published *Refined Quick Settings and Sound* mod in the
+[`windhawk-mods`](https://github.com/ramensoftware/windhawk-mods) repository,
+`mods/refined-quick-settings-and-sound.wh.cpp`, used as the structural reference
+for discovery (the rule that a `Connect` target must never be queried while it is
+half-built comes from there). The invariants above carry the lesson.
 
 Other useful, volatile paths: `%TEMP%\whflags.txt`, `%TEMP%\ControlCenter.pdb`
 (verified symbol names), and `C:\Program Files\Windhawk\Compiler\include\winrt\base.h`

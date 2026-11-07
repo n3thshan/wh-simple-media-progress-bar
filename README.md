@@ -45,7 +45,7 @@ Layout (no player needed):
 - [ ] Open Quick Settings with the media card visible: bar, `0:00` on the left,
       duration on the right, buttons centered underneath.
 - [ ] Buttons look exactly as before (same size, spacing, hover circle).
-- [ ] Card is 36 DIP taller; the quick action buttons below move down by 36;
+- [ ] Card is 36 DIP taller; the quick action buttons below move down by 36 DIP;
       nothing is clipped and no scrollbar appears on a normal-size screen.
 - [ ] Repeat at 100 %, 125 %, 150 %, 200 % display scaling.
 - [ ] Open/close the panel ~50 times, including by clicking outside and by
@@ -102,8 +102,9 @@ was rebuilt without the row. `No panel window recognised on this build` is not a
 error: it means the shell build does not expose the window the mod looks for, so
 the bar keeps its fast poll rate.
 
-The mod logs nothing else. In particular there is no per-tick or per-frame line:
-it is either running normally or it says once that something is missing.
+Apart from one-off error lines, the mod logs nothing else. In particular there is
+no per-tick or per-frame line: it is either running normally or it says once that
+something is missing.
 
 ## Notes and limitations
 
@@ -119,23 +120,21 @@ it is either running normally or it says once that something is missing.
   background, so reopening after a long pause shows the current time. Everything
   wakes up from the events that fire when the panel opens, and the bar is
   filled in before the panel finishes animating in.
-- The very first panel open after a reboot may show no bar, because the hooks
-  arrive after the panel is already built. It appears on the next open.
 - The bar hides itself if the session reports no playback position control, or if
   the timeline is empty (start >= end).
 - Seeking goes through `GlobalSystemMediaTransportControlsSession.TryChangePlaybackPositionAsync`.
   Some players apply the seek but never publish the new position back; the mod
   keeps counting from the position it asked for instead of trusting the stale
   timeline, so the bar stays in sync either way.
-- Only the arm64 and x86-64 shells ship this XAML; the mod is built for x86-64.
+- Only the Arm64 and x86-64 shells ship this XAML; the mod is built for x86-64.
 
 ## Project
 
 - `@author` is `n3thshan`, `@github` is `https://github.com/n3thshan`.
 - `@id` is `simple-media-progress-bar`; the source file
-  (`simple-media-progress-bar.wh.cpp`) and project folder match it. Earlier
-  builds used `media-progress-bar`, which is why Windhawk treats this one as a
-  separate mod.
+  (`simple-media-progress-bar.wh.cpp`) matches it, and the project folder is
+  `wh-simple-media-progress-bar`. Earlier builds used `media-progress-bar`,
+  which is why Windhawk treats this one as a separate mod.
 - `@version` is `1.0.0`.
 - Windhawk compiles the single `.wh.cpp` file, so there is no separate build
   step.
