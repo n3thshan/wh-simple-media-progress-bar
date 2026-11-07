@@ -15,13 +15,16 @@ Windhawk compiles the source itself.
 
 ## Repository layout
 
-- `simple-media-progress-bar.wh.cpp` — the entire mod (~2,100 lines). The file
+- `simple-media-progress-bar.wh.cpp` — the entire mod (~2,080 lines). The file
   name and `@id` are the same; the project folder is
   `wh-simple-media-progress-bar`. The commands below name the file, so renaming
   it again is a three-place change (file, `README.md` install step, the two
   commands here).
-- `README.md` — user-facing install, testing, log and project notes.
-- `AGENTS.md` — this file.
+- `README.md` — deliberately minimal: intro, install steps, license. It does not
+  document logs, testing, limitations or project notes. It is allowed to drift;
+  this file is kept in sync with the source instead.
+- `AGENTS.md` — this file. Maintainer's reference: how the mod works, the rules
+  for changing it, the log lines and what they mean.
 - `LICENSE` — GPL-3.0-only, required by the Windhawk catalogue. Do not edit it.
 - `assets/quick-settings.png` — the screenshot used by `README.md` and the
   `==WindhawkModReadme==` block. Cropped to the media card so the rest of the
@@ -31,9 +34,8 @@ The project is a git repository: branch `main`, remote
 `https://github.com/n3thshan/wh-simple-media-progress-bar.git`. Only the five
 files above are tracked; there are no build artefacts or generated files.
 
-Read `README.md` before changing behaviour: it is the user-facing contract —
-install flow, what each log line means, and project notes. Keep it in sync with
-the source.
+The source file is the product. Read it before changing behaviour; the README is
+not a specification of anything beyond installing the mod.
 
 ## Environment
 
@@ -45,7 +47,8 @@ the source.
   makes Windhawk treat the file as a different mod, so an older entry has to be
   removed by hand. That happened once already: the id was `media-progress-bar`
   (and `quick-settings-media-seek` before that), so logs with either old prefix
-  describe an older build.
+  describe an older build. The old `media-progress-bar` entry has been removed by
+  the user; the two must never be enabled at the same time.
 - The symbol hooks are mangled names taken from `ControlCenter.dll` of that build
   (verified against `%TEMP%\ControlCenter.pdb`). A different Windows build can
   change them; `ControlCenter discovery: failed` then means the mod did nothing
@@ -69,17 +72,20 @@ the source.
    back.
 4. **Do not touch the native transport buttons.** Not their style, not their
    position, not their templates. The bar lives in its own row above them.
-5. **Do not rename log lines the README quotes** without updating `README.md` in
-   the same change.
-6. **Do not bump `@version`** except as part of a release: `1.0.1` for a fix,
-   `1.1.0` for a feature. `@id` and `@name` never change once the mod is in the
-   Windhawk catalogue — the 2026-11-06 rename was a deliberate, user-requested
-   exception, recorded under *Current state*, not a precedent.
+5. **Log line wording is a documentation change.** The log lines and what they
+   mean live in this file, in *Logging* and *Diagnosing a broken panel*; the
+   README does not quote them. Renaming or rewording a line means updating both
+   sections in the same change.
+6. **Do not bump `@version`** without asking the user first. When a bump is
+   agreed: `1.0.1` for a fix, `1.1.0` for a feature. `@id` and `@name` never
+   change — the 2026-11-06 rename was a deliberate, user-requested exception,
+   not a precedent.
 
 ## Verifying a change
 
 There is no test runner. Two commands are the only automated gates, and both must
-print `0`. They mirror Windhawk's own compiler invocation.
+print `0`. They mirror Windhawk's own compiler invocation. A docs-only change
+does not need them re-run.
 
 Syntax check (strict warnings):
 
@@ -157,7 +163,8 @@ Line numbers drift; search for the function name.
 | Area | Functions |
 | --- | --- |
 | XAML helpers | `ClassOf`, `Find`, `ParentOf`, `FormatTime` |
-| `namespace media` | `Snapshot`, `Get`/`Store`, `Refresh` (timeline + position tracking), `Projected` / `ResetTracking` / `ClampPosition`, `ApplySeek`, `Wake`/`RequestSeek`, `ThreadProc`, `Start`/`Stop`, `RememberThread` / `StopOnCurrentThread` |
+| `namespace media` | `Snapshot`, `Get`/`Store`, `Refresh` (timeline + position tracking), `Projected` / `ResetTracking` / `ClampPosition`, `ApplySeek`, `Wake`/`RequestSeek`, `ThreadProc`, `Start`/`Stop` |
+| Cross-thread dispatch | `RememberThread`, `StopOnCurrentThread`, the `g_threads` map |
 | `class Patcher` (lifecycle) | `Offer`, `Restore`, `StartTimer`/`StopTimer`/`OnTimer`, `Tick`, `Discover`, `Base`, `ProcessPending`, `Reconcile`/`ReconcileCore`, `ReportMissing` |
 | `class Patcher` (card) | `AddColumn`, `BuildRow`, `Insert`, `ApplyHeight`, `SetRowVisible`, `Commit`, `Update`/`UpdateCore`, `SyncTimeBrush`/`FallbackBrush`, `WindowShown` / `QueryHostWindows` / `HostVisible` |
 | Discovery hooks | `Discovered`, `NoteSlowDiscovery`, `InstallProc`, `Hook*Focus`, `Hook*Connect`, `HookControlCenter` |
@@ -168,10 +175,11 @@ Line numbers drift; search for the function name.
 1. `Wh_ModInit` starts a small installer thread that watches for
    `ControlCenter.dll` with `GetModuleHandleW` every 250 ms. Once the module is
    there it waits one more second, then calls `HookSymbols` for the four mangled
-   `ControlCenterView` / `FullScreenPage` interface methods. `OnGotFocus` is the
-   required trigger; the two `Connect` hooks are optional and only arrive
-   earlier. Nothing else happens at start-up: there is no `LoadLibraryExW` hook,
-   and the media thread is started by the first discovery.
+   `ControlCenterView` / `FullScreenPage` interface methods. Only the
+   `ControlCenterView` `OnGotFocus` hook is required; the other three (the
+   `FullScreenPage` `OnGotFocus` hook and both `Connect` hooks) are optional and
+   only arrive earlier. Nothing else happens at start-up: there is no
+   `LoadLibraryExW` hook, and the media thread is started by the first discovery.
 2. A hook hands the live `FrameworkElement` to a per-UI-thread `Patcher`. The
    patcher starts a 200 ms Win32 timer and, on the UI thread, walks the tree to
    the media card (`MediaTransportControlsRegion` → `Root` → `MediaButtonsListView`).
@@ -285,14 +293,43 @@ label. Do not "simplify" them away.
 - `Wh_Log` is `wprintf`-style: `%s` for wide strings, `%lld`, `%08X` for HRESULTs.
 - Every line on a hot path must be rate-limited with a `static std::atomic<int>`
   counter. ShellHost logs for the whole session.
-- Keep the existing wording. `README.md` quotes several lines and explains them to
-  users; a rename is a documentation change.
-- The set of lines is deliberately small, and every one of them is quoted in
-  `README.md` or needed for triage: the bounded discovery lines (`Hook ran`,
-  `ControlCenter discovery`), insert, height, `Media card not ready`,
-  `Panel opened`, the slow-tick warnings and the one-off failure lines. There is
-  no per-tick or per-frame logging; adding some back is a debugging change, not a
-  cosmetic one, and it must be removed again before a release.
+- Keep the existing wording. This file documents the lines; `README.md` does not.
+  A rename means updating *Logging* and *Diagnosing a broken panel* here, in the
+  same change.
+- The set of lines is deliberately small, and every one of them is either needed
+  for triage or listed below with its meaning. There is no per-tick or
+  per-frame logging; adding some back is a debugging change, not a cosmetic one,
+  and it must be removed again before a release.
+
+| Line (format) | Meaning |
+| --- | --- |
+| `Initializing (process %u)` | `Wh_ModInit` entered; the installer thread is about to start. |
+| `Installer thread could not be created: %u` | `CreateThread` failed; nothing will ever hook. |
+| `Waiting for ControlCenter.dll` | The installer thread is polling for the module. |
+| `Hook ran: deferred=%d element=%d qr=%08X` | A discovery hook ran (max 6). |
+| `Discovery failed: %08X` | `QueryInterface` to `FrameworkElement` failed (max 5). |
+| `Slow panel handling: %llu ms` | A hook took more than 50 ms (max 10). The mod is blocking the panel. |
+| `ControlCenter discovery: %s` | `ready` — hooks installed; `failed` — mangled symbols did not match this `ControlCenter.dll`, the mod is inert. |
+| `Control Center view attached` | A card's view element was adopted. |
+| `Update timer started` | The 200 ms Win32 timer was created (once per process). |
+| `Update timer could not be created: %u` | `SetTimer` failed; updates fall back to the pending-element path. |
+| `Slow tick: %llu ms` | A `Tick()` took more than 50 ms (max 10). |
+| `Seek bar tick failed: %08X` | `Tick()` threw; swallowed so the shell survives. |
+| `Media card not ready: region=%d root=%d buttons=%d` | Card found but a named part was not (max 5 logs, ≥5 s apart); the flag that is `0` says which. |
+| `The media card has no row definitions` | The card grid has no `RowDefinitions`; left untouched. |
+| `Unexpected media card layout (button row %d of %u), leaving it alone` | The button row is not where it is expected; card untouched. |
+| `Seek row inserted in row %d of %u` | The row was inserted at that index. |
+| `Seek bar update failed: %08X` | `UpdateCore` threw (first 5 failures). |
+| `Seek row update failed: %08X` | `ReconcileCore` threw. |
+| `Seek bar restore failed: %08X` | `Restore` threw. |
+| `Media card base height: %.1f` | `baseHeight_` was (re)learned from `ActualHeight`. |
+| `Panel opened: row=1, height=%.0f` | The panel became visible with the row present (max 20). |
+| `No panel window recognised on this build, polling continuously` | Visibility detection failed open; the UI keeps polling instead of idling. A cost, not a bug. |
+| `Media thread could not join an apartment: %08X` | MTA init failed on the media thread. |
+| `No media session manager available` | GSMTC is unavailable in this process; the row stays hidden. |
+| `Media thread failed: %08X` | The media thread crashed while pumping GSMTC. |
+| `Uninitializing` | `Wh_ModUninit` entered. |
+| `UI thread %u is gone, retaining its XAML state` | A remembered UI thread vanished before the uninit dispatch reached it; its XAML state is left behind. |
 
 ## Diagnosing a broken panel
 
@@ -321,13 +358,29 @@ label. Do not "simplify" them away.
 
 - The user is technically minded but not a developer. Explain behaviour in plain
   language, not in code terms. Ask for a log rather than guessing.
+- Write in simple English, plain and short.
 - **Always check the `Mod version:` line in a pasted log before analysing it**, and
-  the `[local@…]` prefix with it: three mod ids exist on this machine at most
-  (`quick-settings-media-seek`, then `media-progress-bar`, now
+  the `[local@…]` prefix with it: three mod ids have existed in this project's
+  history (`quick-settings-media-seek`, then `media-progress-bar`, now
   `simple-media-progress-bar`), and a log from an older one says nothing about
   the current build. Stale logs have wasted entire debugging rounds.
 - A change is "done" when the user reports it working, not when it compiles.
 - Behaviour that was already agreed with the user should not change silently.
+- **The agent never runs git.** No commit, no push, no branch, no tag, no reset.
+  The user handles every git operation. When a change should be committed, say
+  what to stage and what the message could say.
+- Commit messages only need to be meaningful for release commits (the Windhawk
+  catalogue takes its changelog from the commit message); casual messages are
+  fine otherwise.
+- Ask the user before bumping `@version`, and keep the bump to a release.
+- Never open GitHub issues or pull requests for this project. If the user asks
+  about the Windhawk catalogue submission, give the steps only — do not fork,
+  commit, or open the PR.
+- Do not verify changes with screenshots. When a visual check is needed, ask the
+  user to look at the panel themselves.
+- Do not add items to this project's OpenChamber notes/todos/plans.
+- `AGENTS.md` is the only document kept in sync with the source. `README.md` is
+  deliberately minimal and may drift.
 
 ## Publishing
 
@@ -342,7 +395,8 @@ file plus `README.md`, `AGENTS.md`, `LICENSE` and `assets/quick-settings.png`.
   (`[local@simple-media-progress-bar]` locally) are built from; changing it again
   creates yet another mod rather than updating this one. The rename from
   `media-progress-bar` already did that, so the old id is a separate installed
-  entry that has to be removed by hand.
+  entry — the user has removed it, and the two ids must never be enabled at the
+  same time.
 - `@author` `n3thshan`, `@github` `https://github.com/n3thshan`,
   `@license` GPL-3.0-only. The catalogue requires the licence; do not relax it.
 - Keep the `==WindhawkModReadme==` block short and accurate: it is what users read
@@ -354,90 +408,22 @@ file plus `README.md`, `AGENTS.md`, `LICENSE` and `assets/quick-settings.png`.
   cache; bump it when the image changes. The GitHub readme uses the relative
   `assets/quick-settings.png` path instead.
 - No personal paths, machine names or user-specific values anywhere in the file.
+- The mod is not in the Windhawk catalogue yet, and no decision has been made
+  about submitting. No GitHub releases are planned; the catalogue is the
+  distribution channel. When the user decides to submit, the first release would
+  be `@version 1.0.0` (it has never been released). Submission steps are not
+  written here on purpose: if asked, give them verbally; never fork, commit, or
+  open the PR.
 
 Before a release:
 
-1. Bump `@version` (`1.0.1` fix, `1.1.0` feature) and nothing else about the id.
+1. With the user's approval, bump `@version` (`1.0.1` fix, `1.1.0` feature) and
+   nothing else about the id.
 2. Re-run both checks in *Verifying a change*; both must print `0`.
-3. Refresh the `README.md` log section if any line it quotes changed.
+3. Keep *Logging* and *Diagnosing a broken panel* in this file in sync if any
+   log line changed.
 4. Smoke test: reboot, open Quick Settings ~10 times, bar and both labels present,
    and no new `ShellHost.exe` Id=1000 events in `Application`.
-
-## Current state (2026-11-07)
-
-**Version 1.0.0 — verified on this machine. `@version` was deliberately not
-bumped; both compile gates print `0`.**
-
-Renamed 2026-11-06, at the user's request: `@name` is **Simple Media Progress
-Bar**, `@id` is `simple-media-progress-bar`, and the source file, project folder
-and both documents follow. No behaviour changed, so `@version` stays `1.0.0`:
-Windhawk has never seen this id and will treat the build as a first release. The
-old `media-progress-bar` entry stays installed until the user removes it, and
-both mods must never be enabled at the same time.
-
-Applied 2026-11-06 (verified by the user on 2026-11-07):
-
-- UI idle while hidden: the 200 ms timer stops after two consecutive hidden
-  ticks (`HostVisible()` false) and `g_active` is cleared, so no XAML or window
-  queries run while the panel is closed. The media thread keeps a 1 s GSMTC
-  refresh (`g_watch` stays true) so the position is current at reopen. The open
-  hooks and `Offer()` restart the timer, wake the media thread and paint one
-  frame synchronously (`Patcher::WakeUp()`). `Tick()` also skips
-  `ProcessPending()` while hidden.
-- Panel reopen after a long closure: `WakeUp()` resets `hiddenTicks_` and forces
-  one paint (`forceUpdate_`) even while DWM still reports the window as cloaked.
-  `Refresh()` adds the sample age even after a polling gap (`!woke` removed), so
-  a closure of 10+ s cannot reset the position to `0:00`.
-- Paused seek: `knownPlayingBaseline` now requires `next.playing`, and a seek
-  the player never confirms is no longer reverted while paused (`g_seekTarget`
-  is kept as `g_basePos` until a genuinely new, distinct sample arrives, or the
-  track changes). Stale-sample rejection also applies after the 10 s timeout
-  while paused.
-- Flicker/height: the row is inserted collapsed and the card is grown only when
-  the session is verified seekable; the collapsed card is on natural auto-size
-  (`Height(NaN)`) with `baseHeight_` re-learned, and `Restore()` writes
-  `Height(NaN)` instead of the base height.
-- Boot delay: `Wh_ModInit` no longer hooks `ControlCenter.dll` directly; only
-  `InstallProc` installs, always after `Sleep(1000)`, with a clean exit if
-  `g_stopping` lands during the sleep.
-- `FormatTime(ticks, forceHours)`: a track of an hour or longer keeps `h:mm:ss`
-  for the elapsed label below the mark. Label brushes compare A,R,G,B (not the
-  brush pointer) so in-place theme mutations are detected.
-- `Wh_ModAfterInit` is gone; the entry points are `Wh_ModInit` and
-  `Wh_ModUninit`.
-
-The mod does what it set out to do: a real XAML slider plus two labels in the media
-card, seeking on release, the native buttons untouched. Confirmed by the user on
-this machine: panel opens after a reboot, bar present on the first and every later
-open, times correct, height switching 214 ↔ 178, light-mode label colour, seek to
-the far left restarts the track, no settings.
-
-The one hard-won lesson is invariant 15: the shell's start-up window must stay
-empty of this mod. Two cold starts with zero `ShellHost.exe` Id=1000 events are the
-evidence that 1.0.0's structure works, and 1.0.0 does *less* at start-up than the
-build that was tested (the crash tracers are gone). Do not add anything to
-`Wh_ModInit` without repeating that test.
-
-## Still needed from the user
-
-- Multi-player test: Spotify, Edge-tab YouTube Music, Windows Media Player, and a
-  live stream. Nothing else is outstanding.
-
-Decisions already taken, so they are not re-opened by accident:
-
-- `@author` is `n3thshan`, `@github` is `https://github.com/n3thshan`;
-  **GPL-3.0-only** stays as declared.
-- The mod is named **Simple Media Progress Bar**, id
-  `simple-media-progress-bar` (renamed from **Media Progress Bar** /
-  `media-progress-bar` on 2026-11-06, at the user's request; the id change is
-  accepted, so the old Windhawk entry is removed rather than migrated). The
-  repository is public; the Windhawk catalogue submission is the next publishing
-  step.
-- Seek to the far left: the players tested restart the track, so the
-  FluentFlyout seek-to-1-second workaround is **not** needed.
-- A session with a duration but no position control (`valid=1 seek=0`): the row
-  stays hidden. The user chose this over a read-only progress bar.
-- Seeking happens on release only; there is no "seek while dragging" setting.
 
 ## Reference material
 
@@ -465,8 +451,17 @@ Other useful, volatile paths: `%TEMP%\whflags.txt`, `%TEMP%\ControlCenter.pdb`
 ## Don'ts
 
 - Do not run, install, or edit the user's installed Windhawk mods.
+- Do not run git: no commit, no push, no branch, no tag, no reset, no checkout
+  that discards changes. The user does all git operations.
+- Do not open GitHub issues or pull requests for this project, and do not fork
+  the repository for any reason.
+- Do not add items to this project's OpenChamber notes/todos/plans.
 - Do not rename the public element names (`WindhawkSeekRow`, `WindhawkSeekSlider`,
   `WindhawkSeekElapsed`, `WindhawkSeekTotal`) without a reason.
 - Do not reformat or rewrite working sections as part of an unrelated change.
 - Do not add a settings page, an options UI, or a config file.
 - Do not replace symbol-based discovery with window-class or process scanning.
+- Do not bump `@version` without asking the user first.
+- Do not verify changes with screenshots; ask the user to check visually.
+- Do not add per-tick or per-frame logging, and do not leave temporary
+  `state:`-style debug lines in a release build.
