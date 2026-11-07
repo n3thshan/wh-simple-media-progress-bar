@@ -348,9 +348,10 @@ file plus `README.md`, `AGENTS.md`, `LICENSE` and `assets/quick-settings.png`.
 - Keep the `==WindhawkModReadme==` block short and accurate: it is what users read
   in Windhawk for this mod, not a copy of `README.md`.
 - The Windhawk readme embeds the screenshot from
-  `https://raw.githubusercontent.com/n3thshan/wh-simple-media-progress-bar/main/assets/quick-settings.png`
+  `https://raw.githubusercontent.com/n3thshan/wh-simple-media-progress-bar/main/assets/quick-settings.png?v=2`
   because Windhawk only allows images from `i.imgur.com` and
-  `raw.githubusercontent.com`. The GitHub readme uses the relative
+  `raw.githubusercontent.com`. The `?v=2` suffix bypasses GitHub's raw CDN
+  cache; bump it when the image changes. The GitHub readme uses the relative
   `assets/quick-settings.png` path instead.
 - No personal paths, machine names or user-specific values anywhere in the file.
 
