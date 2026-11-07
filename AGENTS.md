@@ -23,9 +23,12 @@ Windhawk compiles the source itself.
 - `README.md` — user-facing install, testing, log and project notes.
 - `AGENTS.md` — this file.
 - `LICENSE` — GPL-3.0-only, required by the Windhawk catalogue. Do not edit it.
+- `assets/quick-settings.png` — the screenshot used by `README.md` and the
+  `==WindhawkModReadme==` block. Cropped to the media card so the rest of the
+  panel is not published.
 
 The project is a git repository: branch `main`, remote
-`https://github.com/n3thshan/wh-simple-media-progress-bar.git`. Only the four
+`https://github.com/n3thshan/wh-simple-media-progress-bar.git`. Only the five
 files above are tracked; there are no build artefacts or generated files.
 
 Read `README.md` before changing behaviour: it is the user-facing contract —
@@ -332,7 +335,7 @@ The source header is the published artefact: the single `.wh.cpp` file is what
 goes to the Windhawk catalogue (the mods repository takes one file per mod).
 The GitHub repository is
 `https://github.com/n3thshan/wh-simple-media-progress-bar` and holds the same
-file plus `README.md`, `AGENTS.md` and `LICENSE`.
+file plus `README.md`, `AGENTS.md`, `LICENSE` and `assets/quick-settings.png`.
 
 - `@id` `simple-media-progress-bar` and `@name` **Simple Media Progress Bar** are
   final. The id is what Windhawk, the catalogue URL and the log prefix
@@ -344,6 +347,11 @@ file plus `README.md`, `AGENTS.md` and `LICENSE`.
   `@license` GPL-3.0-only. The catalogue requires the licence; do not relax it.
 - Keep the `==WindhawkModReadme==` block short and accurate: it is what users read
   in Windhawk for this mod, not a copy of `README.md`.
+- The Windhawk readme embeds the screenshot from
+  `https://raw.githubusercontent.com/n3thshan/wh-simple-media-progress-bar/main/assets/quick-settings.png`
+  because Windhawk only allows images from `i.imgur.com` and
+  `raw.githubusercontent.com`. The GitHub readme uses the relative
+  `assets/quick-settings.png` path instead.
 - No personal paths, machine names or user-specific values anywhere in the file.
 
 Before a release:
